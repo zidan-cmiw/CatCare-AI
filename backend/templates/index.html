@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CatCare AI - Smart Cat Health Screening</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6; /* Tailwind blue-500 */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+    <div class="max-w-3xl mx-auto px-4 py-12">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-blue-600 mb-3">🐱 CatCare AI</h1>
+            <p class="text-lg text-slate-600">Smart Cat Health Screening System</p>
+            <p class="text-sm text-slate-500 mt-2 max-w-xl mx-auto">
+                Sistem pendeteksi awal kondisi kesehatan kucingmu menggunakan AI. 
+                Unggah foto kucingmu dan ceritakan gejalanya.
+            </p>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden p-6 md:p-8 mb-8">
+            <form id="screening-form">
+                <!-- Foto Upload -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2">1. Unggah Foto Kucing 📷</label>
+                    <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" id="drop-area">
+                        <input type="file" id="foto" name="foto" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" required>
+                    </div>
+                </div>
+
+                <!-- Gejala Input -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2">2. Deskripsikan Gejalanya 📝</label>
+                    <textarea id="gejala" name="gejala" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-400" placeholder="Contoh: Kucing saya muntah-muntah sehabis makan, badannya lemas dan matanya berair..." required></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <span>Mulai Analisis AI</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden flex-col items-center justify-center my-8">
+            <div class="loader mb-4"></div>
+            <p class="text-slate-500 text-sm font-medium animate-pulse">AI sedang menganalisis gambar & gejala...</p>
+        </div>
+
+        <!-- Result Card -->
+        <div id="result-card" class="hidden bg-white rounded-2xl shadow-xl border-t-4 border-blue-500 overflow-hidden p-6 md:p-8">
+            <div class="mb-6">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Hasil Screening</h2>
+                <h3 id="res-disease" class="text-2xl font-bold text-slate-800">Nama Penyakit</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-xs text-blue-600 font-bold uppercase mb-1">Gejala Terdeteksi</p>
+                    <p id="res-symptoms" class="font-medium text-slate-700">-</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <p class="text-xs text-indigo-600 font-bold uppercase mb-1">Confidence Score AI</p>
+                    <p id="res-score" class="font-bold text-xl text-indigo-700">-</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 rounded-lg p-5 border border-amber-200">
+                <h4 class="text-amber-800 font-bold flex items-center gap-2 mb-2">
+                    <span>💡</span> Rekomendasi Tindakan Awal
+                </h4>
+                <p id="res-recom" class="text-amber-900 text-sm leading-relaxed"></p>
+            </div>
+            
+            <p class="text-xs text-slate-400 mt-6 text-center italic">
+                * CatCare AI hanya memberikan deteksi awal dan tidak menggantikan diagnosis resmi dari dokter hewan.
+            </p>
+        </div>
+
+        <!-- Chatbot Section -->
+        <div class="mt-12 bg-white rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-6 border-b pb-4">
+                <div class="bg-blue-100 p-2 rounded-full">
+                    <span class="text-2xl">👨‍⚕️</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-blue-700">Tanya Dr. CatCare</h2>
+                    <p class="text-sm text-slate-500">Konsultasi dengan Dokter Hewan Virtual Spesialis Kucing</p>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div id="chat-box" class="h-64 overflow-y-auto mb-4 p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col gap-3">
+                <div class="flex items-start gap-2 max-w-[80%]">
+                    <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tl-sm text-sm inline-block shadow-sm">
+                        Halo! Saya Dr. CatCare. Ada keluhan apa mengenai kucing Anda hari ini?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" class="flex-1 px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-400 text-sm" placeholder="Ketik pertanyaan medis seputar kucing di sini...">
+                <button id="chat-send" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-md">
+                    Kirim
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript code for handling interactions -->
+    <script>
+        const form = document.getElementById('screening-form');
+        const loading = document.getElementById('loading');
+        const resultCard = document.getElementById('result-card');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Tampilkan loading, sembunyikan hasil sebelumnya
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
+            resultCard.classList.add('hidden');
+            
+            // Ambil data dari form
+            const formData = new FormData(form);
+            
+            try {
+                // Post ke Backend Flask (/predict)
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // Animasi buatan untuk "mengesankan" bahwa AI sedang berpikir (jeda 1.5 detik)
+                setTimeout(() => {
+                    loading.classList.remove('flex');
+                    loading.classList.add('hidden');
+                    
+                    // Tampilkan hasil
+                    document.getElementById('res-disease').textContent = data.disease;
+                    document.getElementById('res-symptoms').textContent = data.symptoms.join(', ');
+                    document.getElementById('res-score').textContent = (data.confidence_score ? data.confidence_score : 0) + '%';
+                    document.getElementById('res-recom').textContent = data.recommendation;
+                    
+                    resultCard.classList.remove('hidden');
+                    
+                    // Scroll ke hasil
+                    resultCard.scrollIntoView({ behavior: 'smooth' });
+                }, 1500);
+                
+            } catch (error) {
+                alert('Telah terjadi kesalahan saat menghubungi server AI.');
+                console.error(error);
+                loading.classList.remove('flex');
+                loading.classList.add('hidden');
+            }
+        });
+
+        // Chatbot logic
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatBox = document.getElementById('chat-box');
+
+        function appendMessage(sender, message) {
+            const isUser = sender === 'user';
+            const alignment = isUser ? 'self-end' : 'self-start';
+            const bubbleStyle = isUser 
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-tr-sm' 
+                : 'bg-white text-slate-700 border border-slate-200 rounded-tl-sm';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex flex-col max-w-[80%] ${alignment}`;
+            // Hapus spasi dan enter di dalam template literal agar whitespace-pre-wrap tidak mendeteksi spasi kosong
+            messageDiv.innerHTML = `<div class="${bubbleStyle} p-3 rounded-2xl text-sm shadow-sm leading-relaxed whitespace-pre-wrap">${message.trim()}</div>`;
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Tampilkan pesan user
+            appendMessage('user', message);
+            chatInput.value = '';
+            chatInput.disabled = true;
+            chatSend.disabled = true;
+
+            // Tampilkan typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'self-start max-w-[80%] text-slate-400 mb-2 mt-1 text-xs px-2 flex items-center gap-1';
+            typingDiv.innerHTML = 'Dr. CatCare membalas <span class="animate-bounce">.</span><span class="animate-bounce" style="animation-delay: 0.1s">.</span><span class="animate-bounce" style="animation-delay: 0.2s">.</span>';
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Post ke Backend Flask (/chat)
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Hapus typing indicator
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+                
+                // Tampilkan pesan bot
+                appendMessage('bot', data.response);
+                
+            } catch (error) {
+                // Hapus typing indicator
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+                
+                appendMessage('bot', 'Maaf, terjadi kesalahan koneksi. Silakan coba lagi.');
+                console.error(error);
+            } finally {
+                chatInput.disabled = false;
+                chatSend.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        chatSend.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    </script>
+</body>
+</html>
