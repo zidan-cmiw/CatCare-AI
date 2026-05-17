@@ -5,8 +5,10 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from flask_cors import CORS
 
-# Load environment variables dari file .env
-load_dotenv()
+# Pastikan selalu mencari .env di folder tempat app.py berada
+basedir = os.path.abspath(os.path.dirname(__file__))
+env_path = os.path.join(basedir, '.env')
+load_dotenv(env_path)
 
 app = Flask(__name__)
 CORS(app) # Mengizinkan frontend React (Vite) untuk memanggil API ini
@@ -62,8 +64,8 @@ def chat():
     if not user_message:
         return jsonify({"response": "Pesan tidak boleh kosong."})
         
-    # Reload dotenv untuk memastikan perubahan file .env terbaca tanpa harus merestart terminal
-    load_dotenv()
+    # Reload dotenv dengan path eksplisit
+    load_dotenv(env_path)
     api_key = os.environ.get("GROQ_API_KEY", "")
     
     if not api_key:

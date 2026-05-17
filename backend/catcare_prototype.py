@@ -4,9 +4,14 @@ import os
 import difflib
 from google import genai
 from PIL import Image
+from dotenv import load_dotenv
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+env_path = os.path.join(basedir, '.env')
 
 # Setup Gemini AI Vision
 def setup_gemini():
+    load_dotenv(env_path)
     gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
     if gemini_api_key:
         return genai.Client(api_key=gemini_api_key)
